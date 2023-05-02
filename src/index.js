@@ -16,7 +16,7 @@ function onSubmitForm(evt) {
   evt.preventDefault();
   const { searchQuery } = evt.currentTarget.elements;
   // console.log(searchQuery.value);
-  inputRequest(searchQuery.value);
+  inputRequest(searchQuery.value.trim());
 }
 
 async function inputRequest(inputValue) {
@@ -27,10 +27,32 @@ async function inputRequest(inputValue) {
     console.log(data);
     return data;
   } catch (error) {
-    console.error(ERROR);
+    console.error(error);
     Notiflix.Notify.failure('Qui timide rogat docet negare');
     return null;
   }
-  
 }
 
+function layoutGalery(data) {
+  let images = '';
+  const marcupGallery = data.hits
+    .map(item => {
+      return `
+    <div class="photo-card">
+    <img src="${item.webformatURL}" alt="${item.tags}" loading="lazy" />
+    <div class="info">
+    <p class="info-item">
+      <b>Likes</b>
+    </p>
+    <p class="info-item">
+      <b>Views</b>
+    </p>
+    <p class="info-item">
+      <b>Comments</b>
+    </p>
+    <p class="info-item">
+      <b>Downloads</b>`;
+    })
+    .join('');
+  galleryList.innerHTML = marcupGallery;
+}
