@@ -32,7 +32,6 @@ async function onSubmitForm(evt) {
   evt.preventDefault();
   galleryList.innerHTML = '';
   const { searchQuery } = evt.currentTarget.elements;
-  // console.log(searchQuery.value);
   const input = await inputRequest(searchQuery.value.trim());
   layoutGalery(input);
   galleryLightBox.refresh();
