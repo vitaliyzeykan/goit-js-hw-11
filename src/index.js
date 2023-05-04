@@ -6,7 +6,7 @@ import SimpleLightbox from 'simplelightbox';
 const API_KEY = '35939413-aadbcae9ca0602d59bc54c500';
 const galleryLightBox = new SimpleLightbox('.gallery div');
 const loadMoreBtn = document.querySelector('.load-more');
-const axios = require('axios').default;
+// const axios = require('axios').default;
 const searchForm = document.querySelector('form#search-form');
 const galleryList = document.querySelector('.gallery');
 const guard = document.querySelector('.js-guard');
