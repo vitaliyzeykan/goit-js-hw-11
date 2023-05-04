@@ -12,47 +12,63 @@ const galleryList = document.querySelector('.gallery');
 
 searchForm.addEventListener('submit', onSubmitForm);
 
-function onSubmitForm(evt) {
+async function onSubmitForm(evt) {
   evt.preventDefault();
+  galleryList.innerHTML = '';
   const { searchQuery } = evt.currentTarget.elements;
   // console.log(searchQuery.value);
-  inputRequest(searchQuery.value.trim());
+  const input = await inputRequest(searchQuery.value.trim());
+  const gallery = await layoutGalery(input);
+  return gallery;
 }
 
 async function inputRequest(inputValue) {
   const URL = `https://pixabay.com/api/?key=${API_KEY}&q=${inputValue}s&image_type=photo&orientation=horizontal&safesearch=true&per_page=40`;
   try {
-    const response = await fetch(URL);
-    const data = await response.json();
-    console.log(data);
-    return data;
+    const response = await axios.get(URL);
+    // console.log(response);
+    if (!response.status === 200) {
+      throw new Error(response.status);
+    }
+    console.log(response.data);
+    return response.data;
   } catch (error) {
     console.error(error);
-    Notiflix.Notify.failure('Qui timide rogat docet negare');
-    return null;
+    Notiflix.Notify.failure(error.message);
   }
+  const data = await layoutGalery(data);
 }
 
 function layoutGalery(data) {
-  let images = '';
+  // console.log(data);
+  // let images = '';
   const marcupGallery = data.hits
     .map(item => {
+      console.log(item);
       return `
     <div class="photo-card">
     <img src="${item.webformatURL}" alt="${item.tags}" loading="lazy" />
     <div class="info">
     <p class="info-item">
       <b>Likes</b>
+      ${item.likes}
     </p>
     <p class="info-item">
       <b>Views</b>
+      ${item.views}
     </p>
     <p class="info-item">
       <b>Comments</b>
+      ${item.comments}
     </p>
     <p class="info-item">
-      <b>Downloads</b>`;
+      <b>Downloads</b>
+      ${item.downloads}
+        </p>
+  </div>
+</div>`;
     })
-    .join('');
+    .join(' ');
   galleryList.innerHTML = marcupGallery;
+  // galleryList.insertAdjacentHTML('afterbegin', marcupGallery);
 }
