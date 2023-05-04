@@ -1,16 +1,32 @@
+import './css/styles.css';
 import Notiflix from 'notiflix';
 import axios from 'axios';
-import './css/styles.css';
+import SimpleLightbox from 'simplelightbox';
 
 const API_KEY = '35939413-aadbcae9ca0602d59bc54c500';
-// let searchQuery = '';
+const galleryLightBox = new SimpleLightbox('.gallery div');
+const loadMoreBtn = document.querySelector('.load-more');
+const axios = require('axios').default;
+const searchForm = document.querySelector('form#search-form');
+const galleryList = document.querySelector('.gallery');
+const guard = document.querySelector('.js-guard');
+const options = {
+  root: null,
+  rootMargin: '500px',
+  threshold: 0,
+};
 let page = 1;
 
-const searchForm = document.querySelector('form#search-form');
-// const searchInput = document.querySelector('form[searchQuery]');
-const galleryList = document.querySelector('.gallery');
+const observer = new IntersectionObserver(onPagination, options);
 
 searchForm.addEventListener('submit', onSubmitForm);
+
+loadMoreBtn.addEventListener('click', async () => {
+  page += 1;
+  const data = await inputRequest(page);
+  if (!data) return;
+  layoutGalery(data);
+});
 
 async function onSubmitForm(evt) {
   evt.preventDefault();
@@ -18,57 +34,75 @@ async function onSubmitForm(evt) {
   const { searchQuery } = evt.currentTarget.elements;
   // console.log(searchQuery.value);
   const input = await inputRequest(searchQuery.value.trim());
-  const gallery = await layoutGalery(input);
-  return gallery;
+  layoutGalery(input);
+  galleryLightBox.refresh();
 }
 
-async function inputRequest(inputValue) {
-  const URL = `https://pixabay.com/api/?key=${API_KEY}&q=${inputValue}s&image_type=photo&orientation=horizontal&safesearch=true&per_page=40`;
+async function inputRequest(inputValue, page) {
+  const URL = `https://pixabay.com/api/?key=${API_KEY}&q=${inputValue}s&image_type=photo&orientation=horizontal&safesearch=true&page=${page}&per_page=40`;
   try {
     const response = await axios.get(URL);
-    // console.log(response);
     if (!response.status === 200) {
-      throw new Error(response.status);
+      throw new Error(response.statusText);
     }
     console.log(response.data);
+
     return response.data;
   } catch (error) {
     console.error(error);
     Notiflix.Notify.failure(error.message);
   }
-  const data = await layoutGalery(data);
+  // const data = await layoutGalery(data);
 }
 
 function layoutGalery(data) {
   // console.log(data);
   // let images = '';
   const marcupGallery = data.hits
-    .map(item => {
-      console.log(item);
+    .map(({ webformatURL, tags, likes, views, comments, downloads }) => {
+      // console.log(item);
       return `
     <div class="photo-card">
-    <img src="${item.webformatURL}" alt="${item.tags}" loading="lazy" />
+    <img src="${webformatURL}" alt="${tags}" loading="lazy" />
     <div class="info">
     <p class="info-item">
       <b>Likes</b>
-      ${item.likes}
+      ${likes}
     </p>
     <p class="info-item">
       <b>Views</b>
-      ${item.views}
+      ${views}
     </p>
     <p class="info-item">
       <b>Comments</b>
-      ${item.comments}
+      ${comments}
     </p>
     <p class="info-item">
       <b>Downloads</b>
-      ${item.downloads}
+      ${downloads}
         </p>
   </div>
 </div>`;
     })
     .join(' ');
-  galleryList.innerHTML = marcupGallery;
-  // galleryList.insertAdjacentHTML('afterbegin', marcupGallery);
+  // galleryList.innerHTML = marcupGallery;
+
+  galleryList.insertAdjacentHTML('beforeend', marcupGallery);
+  loadMoreBtn.hidden = false;
+  // observer.observe(guard);
+  // console.log(data.page);
+
+  // if (data.page !== data.totalHits) {
+  //   observer.observe(guard);
+  // }
 }
+
+function onPagination(entries, observer) {
+  console.log(entries);
+}
+
+// function onLoadMoreBtn() {
+//   page += 1;
+//   // console.log(page);
+//   inputRequest(page);
+// }
