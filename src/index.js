@@ -16,14 +16,14 @@ const options = {
   threshold: 0,
 };
 let page = 1;
+let searchQuery = '';
 
 const observer = new IntersectionObserver(onPagination, options);
 
 searchForm.addEventListener('submit', onSubmitForm);
 
 loadMoreBtn.addEventListener('click', async () => {
-  page += 1;
-  const data = await inputRequest(page);
+  const data = await inputRequest(searchQuery);
   if (!data) return;
   layoutGalery(data);
 });
@@ -31,21 +31,21 @@ loadMoreBtn.addEventListener('click', async () => {
 async function onSubmitForm(evt) {
   evt.preventDefault();
   galleryList.innerHTML = '';
-  const { searchQuery } = evt.currentTarget.elements;
-  const input = await inputRequest(searchQuery.value.trim());
+  searchQuery = evt.currentTarget.elements.searchQuery.value;
+  const input = await inputRequest(searchQuery);
   layoutGalery(input);
   galleryLightBox.refresh();
 }
 
-async function inputRequest(inputValue, page) {
-  const URL = `https://pixabay.com/api/?key=${API_KEY}&q=${inputValue}s&image_type=photo&orientation=horizontal&safesearch=true&page=${page}&per_page=40`;
+async function inputRequest(searchQuery) {
+  const URL = `https://pixabay.com/api/?key=${API_KEY}&q=${searchQuery}s&image_type=photo&orientation=horizontal&safesearch=true&page=${page}&per_page=40`;
   try {
     const response = await axios.get(URL);
     if (!response.status === 200) {
       throw new Error(response.statusText);
     }
     console.log(response.data);
-
+    page += 1;
     return response.data;
   } catch (error) {
     console.error(error);
