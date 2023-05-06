@@ -34,9 +34,10 @@ loadMoreBtn.addEventListener('click', async () => {
 
 async function onSubmitForm(evt) {
   evt.preventDefault();
-  searchQuery = '';
+
   galleryList.innerHTML = '';
-  guard.hidden = false;
+  loadMoreBtn.hidden = true;
+  guard.hidden = true;
   page = 1;
 
   searchQuery = evt.currentTarget.elements.searchQuery.value.trim();
@@ -113,17 +114,19 @@ function layoutGalery(data) {
   galleryList.insertAdjacentHTML('beforeend', marcupGallery);
   if (data.hits.length === 0) {
     guard.hidden = true;
+    loadMoreBtn.hidden = true;
     Notiflix.Notify.failure(
       'Sorry, there are no images matching your search query. Please try again.'
     );
   } else if (data.hits.length < 40) {
     guard.hidden = true;
-    loadMoreBtn.style.display = 'none';
+    loadMoreBtn.hidden = true;
     Notiflix.Notify.info(
       "We're sorry, but you've reached the end of search results."
     );
   } else {
     loadMoreBtn.hidden = false;
+    guard.hidden = false;
   }
 
   observer.observe(guard);
