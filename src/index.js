@@ -2,17 +2,23 @@ import './css/styles.css';
 import Notiflix from 'notiflix';
 import axios from 'axios';
 import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
 
 const API_KEY = '35939413-aadbcae9ca0602d59bc54c500';
-const galleryLightBox = new SimpleLightbox('.gallery div');
+const lightBox = new SimpleLightbox('.gallery .photo-card img', {
+  sourceAttr: 'href',
+  captionType: 'text',
+  captionsData: 'alt',
+  captionDelay: 500,
+});
 const loadMoreBtn = document.querySelector('.load-more');
-// const axios = require('axios').default;
+const axios = require('axios').default;
 const searchForm = document.querySelector('form#search-form');
 const galleryList = document.querySelector('.gallery');
 const guard = document.querySelector('.js-guard');
 const options = {
   root: null,
-  rootMargin: '500px',
+  rootMargin: '300px',
   threshold: 0,
 };
 let page = 1;
@@ -23,6 +29,7 @@ const observer = new IntersectionObserver(onPagination, options);
 searchForm.addEventListener('submit', onSubmitForm);
 
 loadMoreBtn.addEventListener('click', async () => {
+  page += 1;
   const data = await inputRequest(searchQuery);
   if (!data) return;
   layoutGalery(data);
@@ -30,11 +37,22 @@ loadMoreBtn.addEventListener('click', async () => {
 
 async function onSubmitForm(evt) {
   evt.preventDefault();
+  searchQuery = '';
   galleryList.innerHTML = '';
-  searchQuery = evt.currentTarget.elements.searchQuery.value;
+  guard.hidden = false;
+  page = 1;
+
+  searchQuery = evt.currentTarget.elements.searchQuery.value.trim();
+  if (!searchQuery) {
+    return;
+  }
   const input = await inputRequest(searchQuery);
+
   layoutGalery(input);
-  galleryLightBox.refresh();
+  lightBox.refresh();
+  if (input.totalHits !== 0) {
+    Notiflix.Notify.info(`Hooray! We found ${input.totalHits} images.`);
+  }
 }
 
 async function inputRequest(searchQuery) {
@@ -44,25 +62,35 @@ async function inputRequest(searchQuery) {
     if (!response.status === 200) {
       throw new Error(response.statusText);
     }
-    console.log(response.data);
-    page += 1;
+    // console.log(response.data);
+
     return response.data;
   } catch (error) {
     console.error(error);
-    Notiflix.Notify.failure(error.message);
+    Notiflix.Notify.failure(
+      'An error occurred while fetching images. Please try again later.'
+    );
   }
   // const data = await layoutGalery(data);
 }
 
 function layoutGalery(data) {
-  // console.log(data);
-  // let images = '';
+  console.log(data);
+
   const marcupGallery = data.hits
-    .map(({ webformatURL, tags, likes, views, comments, downloads }) => {
-      // console.log(item);
-      return `
+    .map(
+      ({
+        webformatURL,
+        largeImageURL,
+        tags,
+        likes,
+        views,
+        comments,
+        downloads,
+      }) => {
+        return `
     <div class="photo-card">
-    <img src="${webformatURL}" alt="${tags}" loading="lazy" />
+    <img src="${webformatURL}" href="${largeImageURL}" alt="${tags}" loading="lazy" />
     <div class="info">
     <p class="info-item">
       <b>Likes</b>
@@ -82,26 +110,45 @@ function layoutGalery(data) {
         </p>
   </div>
 </div>`;
-    })
+      }
+    )
     .join(' ');
   // galleryList.innerHTML = marcupGallery;
 
   galleryList.insertAdjacentHTML('beforeend', marcupGallery);
-  loadMoreBtn.hidden = false;
-  // observer.observe(guard);
+  if (data.hits.length === 0) {
+    guard.hidden = true;
+    Notiflix.Notify.failure(
+      'Sorry, there are no images matching your search query. Please try again.'
+    );
+  } else if (data.hits.length < 40) {
+    guard.hidden = true;
+    loadMoreBtn.style.display = 'none';
+    Notiflix.Notify.info(
+      "We're sorry, but you've reached the end of search results."
+    );
+  } else {
+    loadMoreBtn.hidden = false;
+  }
+
+  observer.observe(guard);
+
   // console.log(data.page);
 
-  // if (data.page !== data.totalHits) {
-  //   observer.observe(guard);
-  // }
+  if (data.page !== data.totalHits) {
+    observer.observe(guard);
+  }
 }
 
-function onPagination(entries, observer) {
+async function onPagination(entries, observer) {
   console.log(entries);
-}
 
-// function onLoadMoreBtn() {
-//   page += 1;
-//   // console.log(page);
-//   inputRequest(page);
-// }
+  entries.forEach(async entry => {
+    if (entry.isIntersecting) {
+      page += 1;
+      const data = await inputRequest(searchQuery);
+      layoutGalery(data);
+      lightBox.refresh();
+    }
+  });
+}
