@@ -62,7 +62,6 @@ async function inputRequest(searchQuery) {
     if (!response.status === 200) {
       throw new Error(response.statusText);
     }
-    // console.log(response.data);
 
     return response.data;
   } catch (error) {
@@ -71,7 +70,6 @@ async function inputRequest(searchQuery) {
       'An error occurred while fetching images. Please try again later.'
     );
   }
-  // const data = await layoutGalery(data);
 }
 
 function layoutGalery(data) {
