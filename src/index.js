@@ -7,9 +7,6 @@ import 'simplelightbox/dist/simple-lightbox.min.css';
 const API_KEY = '35939413-aadbcae9ca0602d59bc54c500';
 const lightBox = new SimpleLightbox('.gallery .photo-card img', {
   sourceAttr: 'href',
-  captionType: 'text',
-  captionsData: 'alt',
-  captionDelay: 500,
 });
 const loadMoreBtn = document.querySelector('.load-more');
 const axios = require('axios').default;
