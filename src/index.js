@@ -33,7 +33,7 @@ async function onSubmitForm(evt) {
   evt.preventDefault();
 
   galleryList.innerHTML = '';
-  loadMoreBtn.hidden = true;
+  // loadMoreBtn.hidden = true;
   guard.hidden = true;
   page = 1;
   searchQuery = evt.currentTarget.elements.searchQuery.value.trim();
